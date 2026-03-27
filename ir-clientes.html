@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IR Pro — Gestão de Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3240;
+    --accent: #00d4aa;
+    --accent2: #7c6af7;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --wa: #25D366;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 0;
+    z-index: 100;
+  }
+  .logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+  .nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 14px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all .2s; border: none; background: none; text-align: left;
+    width: 100%;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(0,212,170,.12); color: var(--accent); }
+  .nav-item svg { flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; background: var(--accent); color: #000;
+    font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px;
+  }
+  /* MAIN */
+  .main { margin-left: 220px; min-height: 100vh; }
+  .topbar {
+    padding: 20px 32px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg); position: sticky; top: 0; z-index: 50;
+  }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
+  .page-title span { color: var(--accent); }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: all .2s; font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #00bfa0; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,170,.3); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-wa { background: var(--wa); color: #fff; }
+  .btn-wa:hover { background: #1db954; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,211,102,.3); }
+  .btn-email { background: var(--accent2); color: #fff; }
+  .btn-email:hover { background: #6a59e0; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,247,.3); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: rgba(239,68,68,.1); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  /* CONTENT */
+  .content { padding: 28px 32px; }
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .stat-card:nth-child(1)::before { background: var(--accent); }
+  .stat-card:nth-child(2)::before { background: var(--accent2); }
+  .stat-card:nth-child(3)::before { background: var(--wa); }
+  .stat-card:nth-child(4)::before { background: var(--warn); }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  /* ACTIONS BAR */
+  .actions-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .search-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px 9px 36px; color: var(--text);
+    font-size: 13px; font-family: inherit; outline: none; transition: border .2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+  .select-all-wrap { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .bulk-actions { display: flex; gap: 8px; align-items: center; }
+  .selected-info { font-size: 13px; color: var(--accent); font-weight: 600; margin-right: 4px; }
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--surface2); }
+  th {
+    padding: 12px 16px; text-align: left; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+    font-weight: 600; border-bottom: 1px solid var(--border);
+  }
+  td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid rgba(42,50,64,.6); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.selected td { background: rgba(0,212,170,.05); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .cb { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .client-name { font-weight: 500; color: var(--text); }
+  .client-cpf { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: monospace; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .tag-ok { background: rgba(63,185,80,.15); color: var(--green); }
+  .tag-pend { background: rgba(245,158,11,.15); color: var(--warn); }
+  .tag-new { background: rgba(0,212,170,.15); color: var(--accent); }
+  .row-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 30px; height: 30px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; color: var(--muted); transition: all .2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn.wa:hover { border-color: var(--wa); color: var(--wa); }
+  .icon-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500; backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 0; width: 520px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(20px); transition: transform .2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    padding: 24px 28px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 24px 28px; }
+  .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .form-input, .form-select, .form-textarea {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; color: var(--text);
+    font-size: 14px; font-family: inherit; outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select { cursor: pointer; }
+  .form-hint { font-size: 11px; color: var(--muted); }
+  /* DISPARAR MODAL */
+  .dispatch-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .dtab {
+    padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    background: none; border-top: none; border-left: none; border-right: none;
+    transition: all .2s; font-family: inherit;
+  }
+  .dtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .dtab.wa.active { color: var(--wa); border-bottom-color: var(--wa); }
+  .preview-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; font-size: 13px; color: var(--muted);
+    line-height: 1.6; margin-top: 12px;
+  }
+  .preview-box strong { color: var(--text); }
+  .recipients-list {
+    max-height: 160px; overflow-y: auto; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .recipient-tag {
+    background: rgba(0,212,170,.15); color: var(--accent);
+    padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+  /* TOAST */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; font-size: 13px;
+    display: flex; align-items: center; gap: 10px; min-width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    animation: slideIn .3s ease; border-left: 3px solid var(--accent);
+  }
+  .toast.success { border-left-color: var(--green); }
+  .toast.error { border-left-color: var(--danger); }
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  /* EMPTY */
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty svg { margin-bottom: 16px; opacity: .3; }
+  .empty p { font-size: 14px; }
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn .3s ease both; }
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn .25s ease; }
+  /* PROGRESS BAR */
+  .progress-wrap { margin: 12px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+  .progress-fill.wa { background: var(--wa); }
+  .progress-fill.email { background: var(--accent2); }
+  /* IMPORT */
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 40px; text-align: center; cursor: pointer;
+    transition: all .2s; color: var(--muted);
+  }
+  .dropzone:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-text">IR<span>Pro</span></div>
+    <div class="logo-sub">Gestão de Clientes</div>
+  </div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="showPage('clientes')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clientes
+      <span class="nav-badge" id="nav-badge">0</span>
+    </button>
+    <button class="nav-item" onclick="showPage('disparar')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Disparar Mensagens
+    </button>
+    <button class="nav-item" onclick="showPage('templates')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
+      Templates
+    </button>
+    <button class="nav-item" onclick="showPage('historico')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Histórico
+    </button>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- PAGE: CLIENTES -->
+  <div class="page active" id="page-clientes">
+    <div class="topbar">
+      <div class="page-title">Clientes <span>IR 2025</span></div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="openImport()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importar CSV
+        </button>
+        <button class="btn btn-primary" onclick="openModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Cliente
+        </button>
+      </div>
+    </div>
+    <div class="content">
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total de Clientes</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">cadastrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Documentação OK</div>
+          <div class="stat-value" id="stat-ok" style="color:var(--green)">0</div>
+          <div class="stat-sub">prontos p/ envio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pendentes</div>
+          <div class="stat-value" id="stat-pend" style="color:var(--warn)">0</div>
+          <div class="stat-sub">aguardando docs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Selecionados</div>
+          <div class="stat-value" id="stat-sel" style="color:var(--accent)">0</div>
+          <div class="stat-sub">para disparo</div>
+        </div>
+      </div>
+      <!-- ACTIONS BAR -->
+      <div class="actions-bar">
+        <div class="search-wrap">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" type="text" placeholder="Buscar por nome, CPF, e-mail..." id="search" oninput="renderTable()">
+        </div>
+        <label class="select-all-wrap">
+          <input type="checkbox" class="cb" id="select-all" onchange="toggleSelectAll(this.checked)">
+          Selecionar todos
+        </label>
+        <div class="bulk-actions" id="bulk-actions" style="display:none">
+          <span class="selected-info" id="selected-count">0 selecionados</span>
+          <button class="btn btn-wa btn-sm" onclick="openDispatch('whatsapp')">
+            <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp em Massa
+          </button>
+          <button class="btn btn-email btn-sm" onclick="openDispatch('email')">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            E-mail em Massa
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSelected()">Excluir</button>
+        </div>
+      </div>
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" class="cb" id="th-cb" onchange="toggleSelectAll(this.checked)"></th>
+              <th>Cliente</th>
+              <th>E-mail</th>
+              <th>Celular</th>
+              <th>Status</th>
+              <th>Enviados</th>
+              <th style="width:120px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="empty-state" style="display:none">
+          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <p>Nenhum cliente cadastrado ainda.<br>Clique em <strong>Novo Cliente</strong> para começar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: DISPARAR -->
+  <div class="page" id="page-disparar">
+    <div class="topbar">
+      <div class="page-title">Disparar <span>Mensagens</span></div>
+    </div>
+    <div class="content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- WHATSAPP CARD -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:44px;height:44px;background:rgba(37,211,102,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--wa)">
+              <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">WhatsApp em Massa</div>
+              <div style="font-size:12px;color:var(--muted)">Disparo via wa.me link</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Selecionar destinatários</label>
+            <select class="form-select" id="wa-filter">
+              <option value="all">Todos os clientes</option>
+              <option value="pending">Somente pendentes</option>
+              <option value="ok">Somente documentação OK</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Mensagem</label>
+            <textarea class="form-textarea" id="wa-msg" rows="5" placeholder="Olá {nome}, ..."
+>Olá {nome}, tudo bem? 😊
+
+Estamos iniciando a declaração do Imposto de Renda 2025.
+
+Por favor, separe os seguintes documentos:
+📄 Informe de rendimentos
+📄 Comprovante de residência
+📄 Recibos médicos e odontológicos
+
+Qualquer dúvida, estou à disposição! 🤝</textarea>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Use <strong style="color:var(--accent)">{nome}</strong> para personalizar com o nome do cliente.</div>
+          <button class="btn btn-wa" style="width:100%" onclick="startWADispatch()">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Iniciar Disparo WhatsApp
+          </button>
+          <div id="wa-progress-wrap" style="display:none;margin-top:16px">
+            <div class="progress-wrap">
+              <div class="progress-label"><span id="wa-prog-label">Enviando...</span><span id="wa-prog-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill wa" id="wa-prog-fill" style="width:0%"></div></div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="wa-prog-detail"></div>
+          </div>
+        </div>
+        <!-- EMAIL CARD -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:44px;height:44px;background:rgba(124,106,247,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--accent2)">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">E-mail em Massa</div>
+              <div style="font-size:12px;color:var(--muted)">Abre cliente de e-mail padrão</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Selecionar destinatários</label>
+            <select class="form-select" id="email-filter">
+              <option value="all">Todos os clientes</option>
+              <option value="pending">Somente pendentes</option>
+              <option value="ok">Somente documentação OK</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Assunto</label>
+            <input class="form-input" id="email-subject" value="📋 Imposto de Renda 2025 — Documentos Necessários">
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Corpo do e-mail</label>
+            <textarea class="form-textarea" id="email-body" rows="5">Prezado(a) {nome},
+
+Estamos dando início ao processo de declaração do Imposto de Renda 2025.
+
+Por favor, providencie o envio dos documentos necessários.
+
+Atenciosamente,
+Escritório de Contabilidade</textarea>
+          </div>
+          <button class="btn btn-email" style="width:100%" onclick="startEmailDispatch()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Gerar Link de E-mail
+          </button>
+          <div id="email-result" style="display:none;margin-top:16px">
+            <div class="preview-box">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px">✅ <strong>E-mail pronto!</strong> Clique no botão abaixo para abrir no seu cliente de e-mail com todos os destinatários preenchidos.</div>
+              <button class="btn btn-email" style="width:100%;margin-top:8px" id="open-email-btn">Abrir no Gmail / Outlook</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: TEMPLATES -->
+  <div class="page" id="page-templates">
+    <div class="topbar">
+      <div class="page-title">Templates de <span>Mensagem</span></div>
+      <button class="btn btn-primary" onclick="addTemplate()">+ Novo Template</button>
+    </div>
+    <div class="content" id="templates-content"></div>
+  </div>
+
+  <!-- PAGE: HISTORICO -->
+  <div class="page" id="page-historico">
+    <div class="topbar">
+      <div class="page-title">Histórico de <span>Disparos</span></div>
+    </div>
+    <div class="content">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data/Hora</th><th>Canal</th><th>Qtd Enviados</th><th>Mensagem</th><th>Status</th></tr></thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+        <div class="empty" id="hist-empty">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <p>Nenhum disparo realizado ainda.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: NOVO/EDITAR CLIENTE -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Novo Cliente</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome Completo *</label>
+          <input class="form-input" id="f-name" placeholder="João da Silva" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CPF *</label>
+          <input class="form-input" id="f-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">E-mail *</label>
+          <input class="form-input" id="f-email" type="email" placeholder="joao@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Celular (WhatsApp) *</label>
+          <input class="form-input" id="f-phone" placeholder="(11) 99999-9999" maxlength="15" oninput="maskPhone(this)">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="new">Novo</option>
+            <option value="pending">Pendente docs</option>
+            <option value="ok">Documentação OK</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ano de Referência</label>
+          <select class="form-select" id="f-year">
+            <option>2025</option><option>2024</option><option>2023</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="f-obs" placeholder="Notas sobre o cliente..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveClient()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORTAR CSV -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Importar CSV</div>
+      <button class="modal-close" onclick="document.getElementById('import-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dropzone" onclick="document.getElementById('csv-file').click()" id="dropzone">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px;display:block"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px">Arraste o arquivo CSV ou clique aqui</div>
+        <div style="font-size:12px">Colunas esperadas: nome, email, cpf, telefone</div>
+      </div>
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="importCSV(this)">
+      <div style="margin-top:16px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--text)">Exemplo de CSV:</strong><br>
+        <code style="background:var(--surface2);padding:8px 12px;border-radius:6px;display:block;margin-top:6px;font-size:11px">nome,email,cpf,telefone<br>João Silva,joao@email.com,123.456.789-00,(11)99999-9999</code>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('import-modal').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPATCH MODAL -->
+<div class="modal-overlay" id="dispatch-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="dispatch-title">Disparo em Massa</div>
+      <button class="modal-close" onclick="document.getElementById('dispatch-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="dispatch-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('dispatch-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary" id="dispatch-confirm-btn">Confirmar Disparo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────
+let clients = JSON.parse(localStorage.getItem('ir_clients') || '[]');
+let editingId = null;
+let history = JSON.parse(localStorage.getItem('ir_history') || '[]');
+let templates = JSON.parse(localStorage.getItem('ir_templates') || JSON.stringify([
+  { id: 1, name: 'Início IR 2025 — WhatsApp', channel: 'whatsapp', msg: 'Olá {nome}! 😊 Estamos iniciando a declaração do IR 2025. Por favor, separe seus documentos: informe de rendimentos, comprovante de residência e recibos médicos. Qualquer dúvida, estou à disposição!' },
+  { id: 2, name: 'Lembrete documentos — E-mail', channel: 'email', msg: 'Prezado(a) {nome},\n\nLembramos que ainda aguardamos a documentação para sua declaração de IR 2025.\n\nAtenciosamente.' },
+]));
+
+function save() {
+  localStorage.setItem('ir_clients', JSON.stringify(clients));
+  localStorage.setItem('ir_history', JSON.stringify(history));
+  localStorage.setItem('ir_templates', JSON.stringify(templates));
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'historico') renderHistory();
+  if (name === 'templates') renderTemplates();
+}
+
+// ─── RENDER TABLE ─────────────────────────────────────────────────────
+function renderTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = clients.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.email.toLowerCase().includes(q) ||
+    c.cpf.includes(q)
+  );
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty-state');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(c => `
+      <tr class="${c.selected ? 'selected' : ''}" id="row-${c.id}">
+        <td><input type="checkbox" class="cb" ${c.selected ? 'checked' : ''} onchange="toggleSelect('${c.id}', this.checked)"></td>
+        <td>
+          <div class="client-name">${c.name}</div>
+          <div class="client-cpf">${c.cpf}</div>
+        </td>
+        <td style="color:var(--muted);font-size:12px">${c.email}</td>
+        <td style="font-size:12px;font-family:monospace">${c.phone}</td>
+        <td>${statusTag(c.status)}</td>
+        <td>
+          ${c.waSent ? `<span style="font-size:11px;color:var(--wa)">✓ WA</span> ` : ''}
+          ${c.emailSent ? `<span style="font-size:11px;color:var(--accent2)">✓ Email</span>` : ''}
+          ${!c.waSent && !c.emailSent ? '<span style="font-size:11px;color:var(--muted)">—</span>' : ''}
+        </td>
+        <td>
+          <div class="row-actions">
+            <div class="icon-btn wa" title="WhatsApp" onclick="sendWA('${c.id}')">
+              <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </div>
+            <div class="icon-btn" title="Editar" onclick="editClient('${c.id}')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="icon-btn del" title="Excluir" onclick="deleteClient('${c.id}')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+  updateStats();
+}
+
+function statusTag(s) {
+  if (s === 'ok') return '<span class="tag tag-ok">✓ OK</span>';
+  if (s === 'pending') return '<span class="tag tag-pend">⏳ Pendente</span>';
+  return '<span class="tag tag-new">✦ Novo</span>';
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = clients.length;
+  document.getElementById('stat-ok').textContent = clients.filter(c => c.status === 'ok').length;
+  document.getElementById('stat-pend').textContent = clients.filter(c => c.status === 'pending').length;
+  const sel = clients.filter(c => c.selected).length;
+  document.getElementById('stat-sel').textContent = sel;
+  document.getElementById('nav-badge').textContent = clients.length;
+  const bulk = document.getElementById('bulk-actions');
+  const selInfo = document.getElementById('selected-count');
+  if (sel > 0) {
+    bulk.style.display = 'flex';
+    selInfo.textContent = sel + ' selecionado' + (sel > 1 ? 's' : '');
+  } else {
+    bulk.style.display = 'none';
+  }
+}
+
+// ─── SELECTION ────────────────────────────────────────────────────────
+function toggleSelect(id, val) {
+  const c = clients.find(x => x.id === id);
+  if (c) c.selected = val;
+  save(); renderTable();
+}
+function toggleSelectAll(val) {
+  const q = document.getElementById('search').value.toLowerCase();
+  clients.forEach(c => {
+    if (!q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.cpf.includes(q))
+      c.selected = val;
+  });
+  document.getElementById('select-all').checked = val;
+  document.getElementById('th-cb').checked = val;
+  save(); renderTable();
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────
+function openModal(id) {
+  editingId = id || null;
+  document.getElementById('modal-title').textContent = id ? 'Editar Cliente' : 'Novo Cliente';
+  if (id) {
+    const c = clients.find(x => x.id === id);
+    document.getElementById('f-name').value = c.name;
+    document.getElementById('f-cpf').value = c.cpf;
+    document.getElementById('f-email').value = c.email;
+    document.getElementById('f-phone').value = c.phone;
+    document.getElementById('f-status').value = c.status;
+    document.getElementById('f-year').value = c.year || '2025';
+    document.getElementById('f-obs').value = c.obs || '';
+  } else {
+    ['f-name','f-cpf','f-email','f-phone','f-obs'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('f-status').value = 'new';
+    document.getElementById('f-year').value = '2025';
+  }
+  document.getElementById('client-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('client-modal').classList.remove('open'); }
+function editClient(id) { openModal(id); }
+
+function saveClient() {
+  const name = document.getElementById('f-name').value.trim();
+  const cpf = document.getElementById('f-cpf').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  if (!name || !cpf || !email || !phone) { toast('Preencha todos os campos obrigatórios!', 'error'); return; }
+  if (editingId) {
+    const c = clients.find(x => x.id === editingId);
+    Object.assign(c, { name, cpf, email, phone, status: document.getElementById('f-status').value, year: document.getElementById('f-year').value, obs: document.getElementById('f-obs').value });
+    toast('Cliente atualizado com sucesso!', 'success');
+  } else {
+    clients.push({ id: Date.now().toString(), name, cpf, email, phone, status: document.getElementById('f-status').value, year: document.getElementById('f-year').value, obs: document.getElementById('f-obs').value, selected: false, waSent: false, emailSent: false });
+    toast('Cliente cadastrado com sucesso!', 'success');
+  }
+  save(); closeModal(); renderTable();
+}
+
+function deleteClient(id) {
+  if (!confirm('Excluir este cliente?')) return;
+  clients = clients.filter(c => c.id !== id);
+  save(); renderTable(); toast('Cliente excluído.', 'success');
+}
+function deleteSelected() {
+  const n = clients.filter(c => c.selected).length;
+  if (!confirm(`Excluir ${n} cliente(s) selecionado(s)?`)) return;
+  clients = clients.filter(c => !c.selected);
+  save(); renderTable(); toast(`${n} clientes excluídos.`, 'success');
+}
+
+// ─── MASKS ─────────────────────────────────────────────────────────────
+function maskCPF(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/,'$1.$2.$3-$4');
+  else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/,'$1.$2.$3');
+  else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/,'$1.$2');
+  el.value = v;
+}
+function maskPhone(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 10) v = v.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3');
+  else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3');
+  else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/,'($1) $2');
+  el.value = v;
+}
+
+// ─── WHATSAPP ─────────────────────────────────────────────────────────
+function sendWA(id) {
+  const c = clients.find(x => x.id === id);
+  const msg = encodeURIComponent('Olá ' + c.name + ', tudo bem? Estamos iniciando a declaração do IR 2025. Por favor, separe os documentos necessários. Qualquer dúvida, estou à disposição!');
+  const phone = c.phone.replace(/\D/g,'');
+  const full = phone.length === 11 ? '55' + phone : phone;
+  window.open('https://wa.me/' + full + '?text=' + msg, '_blank');
+  c.waSent = true; save(); renderTable();
+  toast('Abrindo WhatsApp para ' + c.name, 'success');
+}
+
+function getFilteredClients(filter) {
+  if (filter === 'selected') return clients.filter(c => c.selected);
+  if (filter === 'pending') return clients.filter(c => c.status === 'pending');
+  if (filter === 'ok') return clients.filter(c => c.status === 'ok');
+  return clients;
+}
+
+function startWADispatch() {
+  const filter = document.getElementById('wa-filter').value;
+  const msg = document.getElementById('wa-msg').value;
+  const list = filter === 'all' ? clients : getFilteredClients(filter);
+  if (list.length === 0) { toast('Nenhum cliente para este filtro!', 'error'); return; }
+
+  const wrap = document.getElementById('wa-progress-wrap');
+  const fill = document.getElementById('wa-prog-fill');
+  const pct = document.getElementById('wa-prog-pct');
+  const label = document.getElementById('wa-prog-label');
+  const detail = document.getElementById('wa-prog-detail');
+  wrap.style.display = 'block';
+
+  let i = 0;
+  function next() {
+    if (i >= list.length) {
+      label.textContent = '✅ Concluído!';
+      detail.textContent = `${list.length} mensagens abertas no WhatsApp.`;
+      list.forEach(c => { c.waSent = true; });
+      save(); renderTable();
+      addHistory('WhatsApp', list.length, msg.substring(0,60)+'...');
+      toast(`${list.length} mensagens enviadas via WhatsApp!`, 'success');
+      return;
+    }
+    const c = list[i];
+    const personalized = msg.replace('{nome}', c.name.split(' ')[0]);
+    const phone = c.phone.replace(/\D/g,'');
+    const full = phone.length === 11 ? '55' + phone : phone;
+    window.open('https://wa.me/' + full + '?text=' + encodeURIComponent(personalized), '_blank');
+    i++;
+    const p = Math.round((i / list.length) * 100);
+    fill.style.width = p + '%';
+    pct.textContent = p + '%';
+    label.textContent = `Enviando ${i} de ${list.length}...`;
+    detail.textContent = 'Último: ' + c.name;
+    setTimeout(next, 1500);
+  }
+  next();
+}
+
+function startEmailDispatch() {
+  const filter = document.getElementById('email-filter').value;
+  const subj = document.getElementById('email-subject').value;
+  const body = document.getElementById('email-body').value;
+  const list = filter === 'all' ? clients : getFilteredClients(filter);
+  if (list.length === 0) { toast('Nenhum cliente para este filtro!', 'error'); return; }
+
+  const emails = list.map(c => c.email).join(',');
+  const mailto = `mailto:?bcc=${encodeURIComponent(emails)}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body.replace('{nome}', 'Cliente'))}`;
+
+  document.getElementById('email-result').style.display = 'block';
+  document.getElementById('open-email-btn').onclick = () => {
+    window.location.href = mailto;
+    list.forEach(c => { c.emailSent = true; });
+    save(); renderTable();
+    addHistory('E-mail', list.length, subj);
+    toast(`E-mail preparado para ${list.length} destinatários!`, 'success');
+  };
+}
+
+// ─── DISPATCH FROM TABLE ─────────────────────────────────────────────
+function openDispatch(type) {
+  const sel = clients.filter(c => c.selected);
+  if (sel.length === 0) { toast('Selecione pelo menos 1 cliente!', 'error'); return; }
+  const modal = document.getElementById('dispatch-modal');
+  document.getElementById('dispatch-title').textContent = type === 'whatsapp' ? '📲 Disparo WhatsApp' : '📧 Disparo E-mail';
+  const body = document.getElementById('dispatch-body');
+  body.innerHTML = `
+    <div style="margin-bottom:16px">
+      <div class="form-label" style="margin-bottom:8px">Destinatários selecionados (${sel.length})</div>
+      <div class="recipients-list">${sel.map(c => `<span class="recipient-tag">${c.name.split(' ')[0]}</span>`).join('')}</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mensagem</label>
+      <textarea class="form-textarea" id="quick-msg" rows="5">${type === 'whatsapp' ? 'Olá {nome}! Estamos iniciando o IR 2025. Por favor, separe seus documentos. Qualquer dúvida estou aqui! 😊' : 'Prezado(a) {nome},\n\nSolicito que envie os documentos para declaração de IR 2025.\n\nAtenciosamente.'}</textarea>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px">Use <strong style="color:var(--accent)">{nome}</strong> para personalizar.</div>
+  `;
+  const btn = document.getElementById('dispatch-confirm-btn');
+  btn.textContent = type === 'whatsapp' ? '📲 Enviar via WhatsApp' : '📧 Preparar E-mails';
+  btn.className = `btn ${type === 'whatsapp' ? 'btn-wa' : 'btn-email'}`;
+  btn.onclick = () => {
+    const msg = document.getElementById('quick-msg').value;
+    modal.classList.remove('open');
+    if (type === 'whatsapp') {
+      let i = 0;
+      function next() {
+        if (i >= sel.length) { sel.forEach(c => c.waSent = true); save(); renderTable(); addHistory('WhatsApp', sel.length, msg.substring(0,60)); toast(`${sel.length} WhatsApps enviados!`, 'success'); return; }
+        const c = sel[i];
+        const phone = c.phone.replace(/\D/g,'');
+        const full = phone.length === 11 ? '55'+phone : phone;
+        window.open('https://wa.me/'+full+'?text='+encodeURIComponent(msg.replace('{nome}',c.name.split(' ')[0])), '_blank');
+        i++; setTimeout(next, 1500);
+      }
+      next();
+    } else {
+      const emails = sel.map(c => c.email).join(',');
+      window.location.href = `mailto:?bcc=${encodeURIComponent(emails)}&subject=${encodeURIComponent('IR 2025 — Documentos')}&body=${encodeURIComponent(msg.replace('{nome}','Cliente'))}`;
+      sel.forEach(c => c.emailSent = true); save(); renderTable();
+      addHistory('E-mail', sel.length, msg.substring(0,60));
+      toast(`E-mail preparado para ${sel.length} destinatários!`, 'success');
+    }
+  };
+  modal.classList.add('open');
+}
+
+// ─── IMPORT CSV ───────────────────────────────────────────────────────
+function openImport() { document.getElementById('import-modal').classList.add('open'); }
+function importCSV(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+    let count = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const vals = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g,''));
+      const row = {};
+      header.forEach((h, idx) => row[h] = vals[idx] || '');
+      if (row.nome || row.name) {
+        clients.push({ id: Date.now().toString() + i, name: row.nome || row.name, email: row.email || '', cpf: row.cpf || '', phone: row.telefone || row.phone || row.celular || '', status: 'new', selected: false, waSent: false, emailSent: false });
+        count++;
+      }
+    }
+    save(); renderTable();
+    document.getElementById('import-modal').classList.remove('open');
+    toast(`${count} clientes importados com sucesso!`, 'success');
+  };
+  reader.readAsText(file);
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────────
+function addHistory(channel, qty, msg) {
+  history.unshift({ id: Date.now(), date: new Date().toLocaleString('pt-BR'), channel, qty, msg, status: 'ok' });
+  save();
+}
+function renderHistory() {
+  const tbody = document.getElementById('history-tbody');
+  const empty = document.getElementById('hist-empty');
+  if (history.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = history.map(h => `
+    <tr>
+      <td style="font-size:12px;color:var(--muted)">${h.date}</td>
+      <td>${h.channel === 'WhatsApp' ? '<span class="tag tag-ok" style="background:rgba(37,211,102,.15);color:var(--wa)">WhatsApp</span>' : '<span class="tag" style="background:rgba(124,106,247,.15);color:var(--accent2)">E-mail</span>'}</td>
+      <td style="font-family:monospace;color:var(--accent)">${h.qty}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.msg}</td>
+      <td><span class="tag tag-ok">✓ Enviado</span></td>
+    </tr>
+  `).join('');
+}
+
+// ─── TEMPLATES ────────────────────────────────────────────────────────
+function renderTemplates() {
+  const c = document.getElementById('templates-content');
+  c.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">` +
+    templates.map(t => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-weight:600;font-size:14px">${t.name}</div>
+          <span class="tag ${t.channel === 'whatsapp' ? 'tag-ok' : ''}" style="${t.channel === 'whatsapp' ? 'background:rgba(37,211,102,.15);color:var(--wa)' : 'background:rgba(124,106,247,.15);color:var(--accent2)'}">${t.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap">${t.msg}</div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn btn-outline btn-sm" onclick="useTemplate(${t.id})">Usar</button>
+          <button class="btn btn-danger btn-sm" onclick="delTemplate(${t.id})">Excluir</button>
+        </div>
+      </div>
+    `).join('') + `</div>`;
+}
+function addTemplate() {
+  const name = prompt('Nome do template:'); if (!name) return;
+  const ch = confirm('WhatsApp? (OK = WhatsApp, Cancelar = E-mail)') ? 'whatsapp' : 'email';
+  const msg = prompt('Mensagem (use {nome} para personalizar):'); if (!msg) return;
+  templates.push({ id: Date.now(), name, channel: ch, msg });
+  save(); renderTemplates(); toast('Template salvo!', 'success');
+}
+function delTemplate(id) { templates = templates.filter(t => t.id !== id); save(); renderTemplates(); }
+function useTemplate(id) {
+  const t = templates.find(x => x.id === id);
+  if (t.channel === 'whatsapp') { showPage_nav('disparar'); document.getElementById('wa-msg').value = t.msg; }
+  else { showPage_nav('disparar'); document.getElementById('email-body').value = t.msg; }
+}
+function showPage_nav(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✓' : '⚠'}</span> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ─── DEMO DATA ────────────────────────────────────────────────────────
+if (clients.length === 0) {
+  clients = [
+    { id: '1', name: 'Maria Aparecida Santos', cpf: '123.456.789-00', email: 'maria@email.com', phone: '(11) 99234-5678', status: 'ok', selected: false, waSent: false, emailSent: false },
+    { id: '2', name: 'João Carlos Oliveira', cpf: '987.654.321-00', email: 'joao@email.com', phone: '(11) 98765-4321', status: 'pending', selected: false, waSent: false, emailSent: false },
+    { id: '3', name: 'Ana Paula Ferreira', cpf: '456.789.123-00', email: 'ana@email.com', phone: '(21) 97654-3210', status: 'new', selected: false, waSent: false, emailSent: false },
+    { id: '4', name: 'Roberto Lima Costa', cpf: '321.654.987-00', email: 'roberto@email.com', phone: '(31) 96543-2109', status: 'pending', selected: false, waSent: false, emailSent: false },
+    { id: '5', name: 'Fernanda Rodrigues', cpf: '654.321.098-00', email: 'fernanda@email.com', phone: '(41) 95432-1098', status: 'ok', selected: false, waSent: false, emailSent: false },
+  ];
+  save();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>
